@@ -133,6 +133,8 @@ export default {
     let year = date.getFullYear()
     let month = date.getMonth() + 1
     let day = date.getDate()
+    let hour = date.getHours()
+    let minute = date.getMinutes()
     let str = format
       .replace(/dd/, ('0' + day).slice(-2))
       .replace(/d/, day)
@@ -144,6 +146,8 @@ export default {
       .replace(/M(?!a|ä)/, month)
       .replace(/su/, this.getNthSuffix(date.getDate()))
       .replace(/D(?!e|é|i)/, this.getDayNameAbbr(date, translation.days))
+      .replace(/HH/, ('0' + hour).slice(-2))
+      .replace(/mm/, ('0' + minute).slice(-2))
     return str
   },
 

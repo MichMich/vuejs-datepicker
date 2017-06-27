@@ -37,6 +37,14 @@
                 track-by="timestamp"
                 v-bind:class="{ 'selected':day.isSelected, 'disabled':day.isDisabled, 'highlighted': day.isHighlighted, 'today': day.isToday}"
                 @click="selectDate(day)">{{ day.date }}</span>
+        
+        
+              <div class="cell time" v-if="showTime">
+                <input type="number" min="0" max="23" step="1" v-model="time.hour">
+                <span class="time-devider">:</span>
+                <input type="number" min="0" max="59" step="1" v-model="time.minute">
+              </div>
+        
         </div>
 
         <!-- Month View -->
@@ -86,6 +94,7 @@ export default {
   props: {
     value: {
       validator: function (val) {
+        console.log(val)
         return val === null || val instanceof Date || typeof val === 'string'
       }
     },
@@ -156,6 +165,10 @@ export default {
     required: {
       type: Boolean,
       default: false
+    },
+    showTime: {
+      type: Boolean,
+      default: false
     }
   },
   data () {
@@ -181,12 +194,47 @@ export default {
       /*
        * Positioning
        */
-      calendarHeight: 0
+      calendarHeight: 0,
+
+      time: {
+        hour: (!this.showTime) ? 0 : new Date().getHours(),
+        minute: (!this.showTime) ? 0 : new Date().getMinutes()
+      }
     }
   },
   watch: {
     value (value) {
       this.setValue(value)
+    },
+    'time.hour' (to, from) {
+      if (isNaN(to)) {
+        this.time.hour = 0
+        return
+      }
+      if (!(to >= 0 && to <= 23)) {
+        this.time.hour = from
+        return
+      }
+      if (to.length < 2) {
+        this.time.hour = '0' + this.time.hour
+      }
+
+      if (this.selectedDate) this.setDate(this.selectedDate)
+    },
+    'time.minute' (to, from) {
+      if (isNaN(to)) {
+        this.time.minute = 0
+        return
+      }
+      if (!(to >= 0 && to <= 59)) {
+        this.time.minute = from
+        return
+      }
+      if (to.length < 2) {
+        this.time.minute = '0' + this.time.minute
+      }
+
+      if (this.selectedDate) this.setDate(this.selectedDate)
     }
   },
   computed: {
@@ -355,10 +403,14 @@ export default {
     },
 
     setDate (timestamp) {
-      this.selectedDate = new Date(timestamp)
+      const timestampWithTime = new Date(timestamp)
+      timestampWithTime.setHours(this.time.hour)
+      timestampWithTime.setMinutes(this.time.minute)
+
+      this.selectedDate = new Date(timestampWithTime)
       this.currDate = new Date(this.selectedDate.getFullYear(), this.selectedDate.getMonth(), 1).getTime()
-      this.$emit('selected', new Date(timestamp))
-      this.$emit('input', new Date(timestamp))
+      this.$emit('selected', new Date(timestampWithTime))
+      this.$emit('input', new Date(timestampWithTime))
     },
 
     clearDate () {
@@ -743,6 +795,8 @@ export default {
       }
       this.selectedDate = date
       this.currDate = new Date(date.getFullYear(), date.getMonth(), 1).getTime()
+      this.time.hour = ('0' + new Date(date).getHours()).slice(-2)
+      this.time.minute = ('0' + new Date(date).getMinutes()).slice(-2)
     },
 
     /**
@@ -887,7 +941,22 @@ $width = 300px
     .month,
     .year
         width 33.333%
-
+    .time
+      width 100%
+      display flex
+      justify-content center
+      border-top 1px solid #eee
+      input
+        width 20%
+        text-align center
+        border none
+        background-color #fafafa
+        padding-left 15px
+        font-size: 1rem
+      .time-devider
+        display block
+        padding 0 5px
+      
 .vdp-datepicker__clear-button, .vdp-datepicker__calendar-button
     cursor pointer
     font-style normal
